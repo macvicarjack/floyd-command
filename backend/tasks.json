@@ -1,0 +1,1127 @@
+[
+  {
+    "id": "1",
+    "title": "Welcome to Floyd Command",
+    "description": "This is a sample task to get you started.",
+    "status": "DO NOW",
+    "priority": "high",
+    "assignee": "Floyd",
+    "created_at": "2026-02-25T00:00:00Z",
+    "updated_at": "2026-02-25T00:00:00Z",
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test Task from API",
+    "description": "Testing create",
+    "status": "QUEUED",
+    "priority": "high",
+    "assignee": "Floyd",
+    "id": "406ab3b6-aa6f-4db1-b6cf-3f32d7bd36b5",
+    "created_at": "2026-02-24T22:42:34.709934",
+    "updated_at": "2026-02-24T22:42:34.709945",
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test",
+    "description": "Test ",
+    "status": "QUEUED",
+    "priority": "medium",
+    "assignee": "Jack ",
+    "id": "405fdbd6-d162-4557-8bb9-d1b43625a057",
+    "created_at": "2026-02-24T22:43:30.223580",
+    "updated_at": "2026-02-24T22:43:30.223606",
+    "project": "RSS Testing"
+  },
+  {
+    "id": "59cf0b29-7587-42ed-8537-515013cb0543",
+    "title": "Research urgent prospect ACME Corp",
+    "description": "",
+    "status": "QUEUED",
+    "priority": "high",
+    "category": "business",
+    "assignee": "Floyd",
+    "artifacts": [],
+    "depends_on": [],
+    "created_at": "2026-02-24T23:00:14.949827",
+    "updated_at": "2026-02-24T23:00:14.949832",
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.1: New Lead \u2192 First Contact Speed",
+    "description": "What: Does the system contact a new lead within 60 seconds?\n\n**If fail:** Check Lead_Inquiry_AI_Call trigger \u2192 check n8n VAPI outbound workflow execution log",
+    "category": "business",
+    "priority": "high",
+    "status": "DO NOW",
+    "acceptance_criteria": [
+      "Opportunity created in Roofing Pipeline \u2192 \"New Lead Created\" stage",
+      "Tag `start_new_lead_cadence` applied",
+      "First SMS received on your phone within 60 seconds",
+      "VAPI call received within 2 minutes"
+    ],
+    "id": "c3408aaa-53fa-41ea-84f5-e09483805952",
+    "created_at": "2026-02-25T07:11:17.453555",
+    "updated_at": "2026-02-25T07:11:17.453561",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.2: Business Hours SMS Logic",
+    "description": "What: Does the system send the RIGHT SMS based on time of day?\n\n**If fail:** Check Lead_Inquiry_AI_Call time-of-day condition nodes",
+    "category": "business",
+    "priority": "medium",
+    "status": "DO NOW",
+    "acceptance_criteria": [
+      "If created during business hours (8am-8pm): Daytime SMS message",
+      "If created after hours: After-hours SMS message",
+      "SMS tone matches time of day (not a \"good morning!\" text at 9pm)"
+    ],
+    "id": "6200753a-402d-4d1f-b71a-4af9576a1e6c",
+    "created_at": "2026-02-25T07:11:17.455613",
+    "updated_at": "2026-02-25T07:11:17.455616",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.3: VAPI Call \u2014 Lead Answers, Books Appointment",
+    "description": "What: Happy path \u2014 lead picks up, Sarah books them\n\n**If fail:** Check Vapi_Call_Results_Receiver branches \u2192 n8n VAPI completion workflow \u2192 Rep Appointment Notification",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Sarah sounds natural, uses Luna voice",
+      "She captures appointment details",
+      "Call ends cleanly",
+      "Within 30 seconds of call ending: n8n \"Vapi Call Completion\" workflow fires",
+      "GHL contact updated with call result",
+      "Tag `appointment_confirmed` applied",
+      "Opportunity moved to \"Appointment Set\" stage",
+      "Rep gets SMS notification at +17744443510",
+      "Confirmation SMS sent to lead",
+      "Confirmation Email sent to lead",
+      "Contact REMOVED from Lead_Nurture_Sequence (no more drip SMS)"
+    ],
+    "id": "c2b1e6f9-7109-49cc-959b-98ffcf835041",
+    "created_at": "2026-02-25T07:11:17.456487",
+    "updated_at": "2026-02-25T07:11:17.456488",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.4: VAPI Call \u2014 No Answer",
+    "description": "What: Lead doesn't pick up. Does the system retry correctly?\n\n**If fail:** Check Vapi_Call_Results_Receiver \"No Answer/Voicemail\" branch \u2192 does it increment counter and re-trigger?",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Call goes to voicemail / rings out",
+      "n8n receives \"no answer\" result",
+      "GHL contact field `AI_Call_Attempt` incremented (should now = 1)",
+      "System waits ~2 hours",
+      "SECOND VAPI call attempt made (double-dial day 1)",
+      "If still no answer: `AI_Call_Attempt` incremented to 2"
+    ],
+    "id": "28c4a1f4-56d9-4801-9764-8bf3bafae97c",
+    "created_at": "2026-02-25T07:11:17.457370",
+    "updated_at": "2026-02-25T07:11:17.457372",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.5: VAPI Call \u2014 Lead Says \"Not Interested\"",
+    "description": "What: Lead picks up and declines\n\n**If fail:** Check Vapi_Call_Results_Receiver \"Not Interested\" branch",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Sarah handles rejection gracefully",
+      "n8n receives \"not interested\" result",
+      "Tag `not_interested` applied",
+      "Opportunity moved to \"Lost\" stage",
+      "Contact REMOVED from all active workflows",
+      "NO further SMS or calls sent to this contact"
+    ],
+    "id": "e1d8875c-5402-4034-aaf5-89ca603cfb3c",
+    "created_at": "2026-02-25T07:11:17.458137",
+    "updated_at": "2026-02-25T07:11:17.458138",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.6: VAPI Call \u2014 Lead Requests Callback",
+    "description": "What: Lead says \"call me back later\"\n\n**If fail:** Check Vapi_Call_Results_Receiver \"Callback Requested\" branch",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Sarah acknowledges callback request",
+      "Tag `callback_requested` applied",
+      "Task created in GHL assigned to rep",
+      "No immediate retry (different from no-answer)"
+    ],
+    "id": "5d22dd6c-eb79-497d-a415-71461e760371",
+    "created_at": "2026-02-25T07:11:17.458873",
+    "updated_at": "2026-02-25T07:11:17.458875",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 1.7: VAPI Calling Hours Enforcement",
+    "description": "What: Does the system respect 8am-8pm calling window?\n\n**If fail:** Check calling hours conditions in Lead_Inquiry_AI_Call and n8n VAPI workflow",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS may still send (check if SMS also has hours restriction)",
+      "VAPI call does NOT fire outside 8am-8pm",
+      "Call queues until next business hours window",
+      "Call fires at or shortly after 8am next day"
+    ],
+    "id": "c6e836e6-d2c7-4aa1-be09-5eb6f64905d9",
+    "created_at": "2026-02-25T07:11:17.459911",
+    "updated_at": "2026-02-25T07:11:17.459913",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 2.1: Nurture Sequence Starts",
+    "description": "What: Does the SMS drip begin after lead enters system?\n\n**If fail:** Check if Lead_Nurture_Sequence trigger fires on the right tag",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Contact is enrolled in Lead_Nurture_Sequence",
+      "First nurture SMS arrives (may be same day or next day depending on timing)"
+    ],
+    "id": "d655ee8f-7fb3-4b5e-9125-0b1f19bb2a96",
+    "created_at": "2026-02-25T07:11:17.460829",
+    "updated_at": "2026-02-25T07:11:17.460830",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 2.2: Day 1-3 Cadence Timing",
+    "description": "What: Does the drip follow the designed schedule?\n\n**Note:** This is a multi-day test. Log timestamps of each SMS received.\n**If fail:** Check Wait nodes in Lead_Nurture_Sequence",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Touch 1: Day 1 \u2014 SMS sent",
+      "Touch 2: Day 3 \u2014 SMS sent",
+      "Messages arrive during business hours only",
+      "Wait periods between touches match design (1-3 days)"
+    ],
+    "id": "7b38e2a2-eb72-4493-b03e-8501d644d473",
+    "created_at": "2026-02-25T07:11:17.461909",
+    "updated_at": "2026-02-25T07:11:17.461910",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 2.3: Engagement Detection \u2014 SMS Reply Stops Drip",
+    "description": "What: When lead replies, does the nurture sequence stop?\n\n**If fail:** Check SMS_Receiver \u2192 n8n Inbound Reply Handler \u2192 Lead_Nurture_Sequence engagement condition",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS_Receiver workflow fires",
+      "Webhook sent to n8n `/webhook/inbound-reply`",
+      "Inbound Reply Handler classifies as \"engage\" intent",
+      "Tag `engaged` applied to contact",
+      "Contact REMOVED from Lead_Nurture_Sequence immediately",
+      "NO more automated nurture SMS after this point",
+      "Appropriate response sent back (or rep notified)"
+    ],
+    "id": "f8c4c6f6-4e7c-4186-b78c-e239d9d09e1a",
+    "created_at": "2026-02-25T07:11:17.462874",
+    "updated_at": "2026-02-25T07:11:17.462875",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 2.4: Engagement Detection \u2014 Does Sequence Check Tag?",
+    "description": "What: At each SMS cycle, does the workflow actually check for the \"engaged\" tag?\n\n**If fail:** Check condition nodes between SMS touches in Lead_Nurture_Sequence",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "At next cycle check, workflow detects \"engaged\" tag",
+      "Workflow exits \u2192 sends webhook to n8n \u2192 internal notification",
+      "No more SMS sent"
+    ],
+    "id": "f1400952-b3b3-458c-83ce-b7d6b0be9800",
+    "created_at": "2026-02-25T07:11:17.463680",
+    "updated_at": "2026-02-25T07:11:17.463682",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 2.5: Full 6-Touch Completion (No Engagement)",
+    "description": "What: If lead never engages, does the full sequence play out and exit cleanly?\n\n**Note:** This is a 14-day test. Set a reminder to check.\n**If fail:** Check end nodes of Lead_Nurture_Sequence",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Touch 1 (Day 1) \u2192 SMS",
+      "Touch 2 (Day 3) \u2192 SMS",
+      "Touch 3 (Day 5) \u2192 SMS",
+      "Touch 4 (Day 7) \u2192 SMS",
+      "Touch 5 (Day 10) \u2192 SMS",
+      "Touch 6 (Day 14) \u2192 SMS",
+      "After Touch 6: workflow ends, contact exits",
+      "Contact should then enter Long_Term_Nurture (if active) or exit system"
+    ],
+    "id": "f39780d0-2336-4a1c-9b17-49d93b93c277",
+    "created_at": "2026-02-25T07:11:17.464470",
+    "updated_at": "2026-02-25T07:11:17.464472",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 3.1: Pricing Question",
+    "description": "What: Lead asks about price \u2014 does n8n route correctly?\n\n**If fail:** Check Inbound Reply Handler classification branches",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS_Receiver fires \u2192 webhook to n8n",
+      "Inbound Reply Handler classifies as pricing intent",
+      "Appropriate auto-response OR rep notification sent",
+      "Contact tagged `engaged`"
+    ],
+    "id": "6cb64a22-086a-46fb-9a5d-c28f66d5dbcf",
+    "created_at": "2026-02-25T07:11:17.465191",
+    "updated_at": "2026-02-25T07:11:17.465193",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 3.2: Booking Intent",
+    "description": "What: Lead wants to book \u2014 does it trigger booking flow?\n\n**If fail:** Check Inbound Reply Handler \"close\" branch",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Classified as booking intent",
+      "Booking link sent OR appointment created OR rep notified",
+      "Contact removed from nurture drip"
+    ],
+    "id": "4068f277-1e97-4248-8854-0cfe891125c4",
+    "created_at": "2026-02-25T07:11:17.465856",
+    "updated_at": "2026-02-25T07:11:17.465858",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 3.3: Negative Response",
+    "description": "What: Lead says no \u2014 does it handle gracefully?\n\n**If fail:** Check Inbound Reply Handler opt-out handling",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Classified as negative/opt-out",
+      "Contact removed from all automated sequences",
+      "No further messages sent",
+      "Possible: tag `not_interested` applied, opportunity updated"
+    ],
+    "id": "a83c3d54-dddb-41b1-af99-c6a39b8ab2bb",
+    "created_at": "2026-02-25T07:11:17.466584",
+    "updated_at": "2026-02-25T07:11:17.466585",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 3.4: Ambiguous Response",
+    "description": "What: Lead sends something unclear\n\n**If fail:** Check Inbound Reply Handler fallback/default branch",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Handler either asks clarifying question OR routes to rep for manual follow-up",
+      "Does NOT auto-book or auto-close",
+      "Rep gets notification with the message content"
+    ],
+    "id": "f50355d8-9c98-460a-9528-4ac4753a8b88",
+    "created_at": "2026-02-25T07:11:17.467336",
+    "updated_at": "2026-02-25T07:11:17.467337",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 4.1: Appointment Created \u2192 Rep Notification",
+    "description": "What: When appointment is booked, does rep get notified?\n\n**If fail:** Check webhook URL matches \u2192 n8n execution log \u2192 Twilio/SMS delivery",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "GHL workflow \"Appointment Created - Notify Rep\" fires",
+      "Webhook POST to n8n `/webhook/rep-appt`",
+      "n8n \"Rep Appointment Notification\" processes it",
+      "Rep receives SMS at +17744443510 with: contact name, time, address",
+      "SMS arrives within 30 seconds"
+    ],
+    "id": "7b531935-030f-438f-a0c6-0fcce5cf1364",
+    "created_at": "2026-02-25T07:11:17.468043",
+    "updated_at": "2026-02-25T07:11:17.468044",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 4.2: Appointment Confirmation to Lead",
+    "description": "What: Does the lead get confirmation SMS + email?\n\n**If fail:** Check Appointment_Confirmation_Sequence",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Confirmation SMS sent to lead's phone",
+      "Confirmation email sent to lead's email",
+      "Contact removed from conflicting workflows"
+    ],
+    "id": "b5a3277b-6b66-48f1-beb1-457bc048cae8",
+    "created_at": "2026-02-25T07:11:17.468823",
+    "updated_at": "2026-02-25T07:11:17.468824",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 4.3: Appointment Reminders (if active)",
+    "description": "What: Do reminders fire at correct intervals?\n\n**Note:** Check which system handles reminders \u2014 GHL (retired to Draft) or n8n (Appointment Reminders is \"Needs Review\"). If NEITHER is active, this is a gap.\n**If fail:** Identify which system should own reminders and activate it",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "24h before: reminder email",
+      "2h before: reminder SMS",
+      "Internal notification to team",
+      "If appointment is in the PAST when workflow runs: skip communications (don't send stale reminders)"
+    ],
+    "id": "0eeb6c20-51dd-48a6-b479-a3c65f1f9152",
+    "created_at": "2026-02-25T07:11:17.469544",
+    "updated_at": "2026-02-25T07:11:17.469545",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 5.1: No-Show Stage Change \u2192 Tag + Webhook",
+    "description": "What: Moving to No Show stage triggers the recovery chain\n\n**If fail:** Check Opportunity_Stage_Change condition \u2192 No Show Trigger workflow",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Opportunity_Stage_Change fires",
+      "Tag `no_show` applied",
+      "No Show Trigger to n8n fires \u2192 webhook to `/webhook/no-show`",
+      "n8n No-Show 7-Day Rebook Cadence starts"
+    ],
+    "id": "4285ee63-0b2c-4abf-be12-aabb51bb5ff3",
+    "created_at": "2026-02-25T07:11:17.470236",
+    "updated_at": "2026-02-25T07:11:17.470237",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 5.2: No-Show First Contact (Within 5 Minutes)",
+    "description": "What: First recovery SMS fires fast\n\n**If fail:** Check No-Show 7-Day Rebook Cadence first node timing",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "First SMS arrives within 5 minutes of no-show marking",
+      "Message tone is empathetic (Sarah No-Show Recovery voice)",
+      "Message offers to reschedule"
+    ],
+    "id": "4c088d50-7546-4495-906c-184cfff694b3",
+    "created_at": "2026-02-25T07:11:17.470965",
+    "updated_at": "2026-02-25T07:11:17.470966",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 5.3: No-Show VAPI Recovery Call",
+    "description": "What: Does Sarah No-Show Recovery call the lead?\n\n**If fail:** Check No-Show 7-Day Rebook Cadence VAPI trigger nodes + calling hours conditions",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "VAPI call from Sarah No-Show Recovery assistant (f90488f9)",
+      "Call uses empathetic rebook tone (different from initial Sarah)",
+      "Call happens during business hours (8am-8pm) only",
+      "If outside hours: call queues to next window"
+    ],
+    "id": "355b7cee-8519-48d6-adc6-4590bc8d09ea",
+    "created_at": "2026-02-25T07:11:17.471671",
+    "updated_at": "2026-02-25T07:11:17.471672",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 5.5: No-Show Recovery \u2192 Lead Re-Books",
+    "description": "What: If the no-show lead rebooks, does recovery stop?\n\n**If fail:** Check if No-Show cadence checks for engagement tags like the nurture sequence does",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Inbound Reply Handler catches the message",
+      "Contact tagged `engaged`",
+      "No-Show cadence STOPS (contact removed)",
+      "Booking flow triggered",
+      "New appointment created"
+    ],
+    "id": "6a944826-6a20-4f99-bd94-0d2c555ae093",
+    "created_at": "2026-02-25T07:11:17.472514",
+    "updated_at": "2026-02-25T07:11:17.472515",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 6.1: Lead Shows \u2192 Proper Tagging",
+    "description": "What: When lead shows up, tags update correctly\n\n**If fail:** Check Opportunity_Stage_Change \"Showed\" branch",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Tag `showed` applied",
+      "n8n Rep Show/No-Show Check detects this (runs every 15 min)"
+    ],
+    "id": "136a5a65-b1fc-40a7-b860-3955bd98a6fc",
+    "created_at": "2026-02-25T07:11:17.473259",
+    "updated_at": "2026-02-25T07:11:17.473260",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 6.2: Won \u2192 Victory Path",
+    "description": "What: Closing a deal triggers proper tagging\n\n**If fail:** Check Opportunity_Stage_Change \"Won\" branch",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Tags `customer` and/or `won` applied",
+      "All automated outreach stops",
+      "Contact marked as customer in system"
+    ],
+    "id": "0f3690f5-aafc-4090-8de7-0cf04738f5e0",
+    "created_at": "2026-02-25T07:11:17.474078",
+    "updated_at": "2026-02-25T07:11:17.474079",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 6.3: Lost \u2192 Clean Exit",
+    "description": "What: Lost deal removes contact from everything\n\n**If fail:** Check Opportunity_Stage_Change \"Lost\" branch \u2192 Remove from Workflow action",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Contact removed from ALL active workflows",
+      "No further SMS, calls, or emails",
+      "Opportunity marked appropriately"
+    ],
+    "id": "e089be57-20a1-46f4-8b34-80d456b233aa",
+    "created_at": "2026-02-25T07:11:17.474825",
+    "updated_at": "2026-02-25T07:11:17.474826",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 6.4: Rep Won/Lost Check (n8n Polling)",
+    "description": "What: n8n polls GHL every 6 hours to catch missed updates\n\n**If fail:** Check n8n workflow schedule trigger \u2192 GHL API call",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "n8n Rep Won/Lost Check executes on schedule (every 6h)",
+      "Detects showed contacts from past 48 hours",
+      "Processes them correctly"
+    ],
+    "id": "6d761dc7-3fc6-43ab-8bb7-484f645b2a3c",
+    "created_at": "2026-02-25T07:11:17.475589",
+    "updated_at": "2026-02-25T07:11:17.475590",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 7.1: Duplicate Lead Prevention",
+    "description": "What: Same person enters twice \u2014 does the system handle it?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "GHL either deduplicates OR creates second contact",
+      "If duplicate: only ONE set of automations runs (not double-messaging)",
+      "If separate: both enter system (may need dedup logic)",
+      "**Document behavior \u2014 this is a potential issue to solve"
+    ],
+    "id": "ff006924-266a-49d0-8c87-872719c74182",
+    "created_at": "2026-02-25T07:11:17.476361",
+    "updated_at": "2026-02-25T07:11:17.476363",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 7.2: Contact with No Phone Number",
+    "description": "What: Lead enters without a phone \u2014 does system break?\n\n**If fail:** Check if workflows have null checks on phone field",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS actions skip (no number to send to)",
+      "VAPI call skips (no number to call)",
+      "System doesn't error out",
+      "Email-only touchpoints still work (if any)"
+    ],
+    "id": "afb2615e-dca6-4c97-8786-b237c382d9c6",
+    "created_at": "2026-02-25T07:11:17.477147",
+    "updated_at": "2026-02-25T07:11:17.477148",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 7.3: Rapid SMS Replies (Spam Prevention)",
+    "description": "What: Lead sends 5 messages in 2 minutes \u2014 does n8n handle it?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Each fires SMS_Receiver \u2192 n8n",
+      "n8n doesn't send 5 auto-responses",
+      "Some dedup or throttle logic prevents message flooding",
+      "**Document behavior \u2014 if no throttle exists, flag as issue"
+    ],
+    "id": "0b218940-cdba-445a-8232-7f6564b1ea6a",
+    "created_at": "2026-02-25T07:11:17.477941",
+    "updated_at": "2026-02-25T07:11:17.477942",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 7.4: Workflow Collision \u2014 Lead in Multiple Sequences",
+    "description": "What: Can a lead be in Nurture AND No-Show simultaneously?\n\n**If fail:** Check Remove from Workflow actions in No-Show flow",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "No-show should REMOVE from nurture first",
+      "Only No-Show recovery messages send (not nurture + recovery overlap)"
+    ],
+    "id": "a55a23c5-cd7f-499d-ae6d-d8a7a6f94820",
+    "created_at": "2026-02-25T07:11:17.478726",
+    "updated_at": "2026-02-25T07:11:17.478727",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 7.5: n8n Workflow Failure Recovery",
+    "description": "What: If n8n errors mid-workflow, what happens?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Failed executions logged",
+      "Error notifications sent (email or webhook)",
+      "Failed contacts don't get stuck in limbo",
+      "**Document: Does n8n retry failed executions? Is there an error notification configured?"
+    ],
+    "id": "12484acb-b14f-49ca-845d-0f2b681a1de0",
+    "created_at": "2026-02-25T07:11:17.479561",
+    "updated_at": "2026-02-25T07:11:17.479562",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.1: VAPI Call Drops Mid-Conversation",
+    "description": "What: Call disconnects unexpectedly \u2014 does the system recover?\n\n**If fail:** Check Vapi_Call_Results_Receiver \u2014 does it have a branch for dropped/incomplete calls?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "n8n receives call result (should be \"incomplete\" or \"no answer\" type)",
+      "System does NOT treat as \"appointment booked\"",
+      "System does NOT treat as \"not interested\"",
+      "Contact re-enters retry logic (another call attempt scheduled)",
+      "No orphaned/stuck state"
+    ],
+    "id": "55188cca-7d46-4ebc-b0f2-d787d8e6da30",
+    "created_at": "2026-02-25T07:11:17.480349",
+    "updated_at": "2026-02-25T07:11:17.480350",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.2: Maximum Call Attempts \u2014 What's the Cap?",
+    "description": "What: After X failed calls, does the system stop calling?\n\n**If fail:** Check Vapi_Call_Results_Receiver \"No Answer\" branch \u2014 is there a max check?",
+    "category": "business",
+    "priority": "high",
+    "status": "DO NOW",
+    "acceptance_criteria": [
+      "Call attempt counter increments each time",
+      "System stops calling after a defined max (what number? 3? 5? Unlimited?)",
+      "After max attempts: contact falls into SMS-only nurture",
+      "System does NOT call forever",
+      "**Document:** What is the actual max? If there's no cap, this is a critical issue."
+    ],
+    "id": "87ff2fc4-41ad-44df-a722-56ff28a453eb",
+    "created_at": "2026-02-25T07:11:17.481169",
+    "updated_at": "2026-02-25T07:11:17.481171",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.3: VAPI Assistant Personality \u2014 Sarah vs Sarah No-Show",
+    "description": "What: Correct assistant used for correct scenario\n\n**If fail:** Check which VAPI assistant ID is referenced in each n8n workflow",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Initial call uses Sarah (a02b7113) \u2014 excited, first-contact tone",
+      "No-show recovery uses Sarah No-Show Recovery (f90488f9) \u2014 empathetic rebook tone",
+      "They sound different in tone/approach",
+      "Neither breaks character or sounds robotic"
+    ],
+    "id": "a5b0fd38-6f25-45cd-98bf-dea69d077dd1",
+    "created_at": "2026-02-25T07:11:17.481993",
+    "updated_at": "2026-02-25T07:11:17.481994",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.4: VAPI + GHL Tool Integration",
+    "description": "What: Sarah has 4 GHL tools \u2014 do they all work?\n\n**If fail:** Check VAPI assistant tool configuration \u2192 GHL API credentials",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Sarah can look up contact info from GHL",
+      "Sarah can book appointments in GHL calendar",
+      "Sarah can update contact fields",
+      "Sarah can check availability/calendar slots",
+      "All 4 tools respond within acceptable latency (< 3 seconds)"
+    ],
+    "id": "8f602f79-e32b-43a5-9f66-51492de47508",
+    "created_at": "2026-02-25T07:11:17.482815",
+    "updated_at": "2026-02-25T07:11:17.482816",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.5: VAPI Call to Landline",
+    "description": "What: What if lead's number is a landline?\n\n**If fail:** Check SMS delivery error handling in GHL workflows",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "VAPI call still goes through (landlines can receive calls)",
+      "SMS messages fail silently or are handled (landlines can't receive SMS)",
+      "System doesn't error out on failed SMS delivery",
+      "Contact isn't stuck in a broken state"
+    ],
+    "id": "c56e7d97-3b24-47c8-9501-4b2986cdcc93",
+    "created_at": "2026-02-25T07:11:17.483623",
+    "updated_at": "2026-02-25T07:11:17.483625",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 8.6: Simultaneous Call + SMS Timing",
+    "description": "What: Does the lead get a call AND text at the same moment?\n\n**If fail:** Check ordering/wait nodes between SMS and webhook trigger in Lead_Inquiry_AI_Call",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS arrives first (faster to send)",
+      "VAPI call follows shortly after",
+      "Lead is NOT on the phone with VAPI when another SMS arrives",
+      "Sequencing is clean, not chaotic"
+    ],
+    "id": "c6a02a92-6b05-4a10-b799-f3d46404653d",
+    "created_at": "2026-02-25T07:11:17.484472",
+    "updated_at": "2026-02-25T07:11:17.484473",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 9.1: STOP Keyword (SMS Opt-Out)",
+    "description": "What: Lead texts \"STOP\" \u2014 does ALL messaging cease?\n\n**If fail:** Check Twilio opt-out settings \u2192 GHL DND (Do Not Disturb) flag",
+    "category": "business",
+    "priority": "high",
+    "status": "DO NOW",
+    "acceptance_criteria": [
+      "GHL/Twilio recognizes STOP keyword",
+      "Contact marked as opted-out at carrier/Twilio level",
+      "ALL SMS workflows stop for this contact",
+      "VAPI calls also stop (or at minimum, system knows they opted out)",
+      "No further automated messages of any kind",
+      "If lead texts again later, system handles re-opt-in correctly",
+      "**CRITICAL \u2014 TCPA violation if this doesn't work**"
+    ],
+    "id": "195d29cd-985a-48d8-9034-3753cf8d2c42",
+    "created_at": "2026-02-25T07:11:17.485335",
+    "updated_at": "2026-02-25T07:11:17.485336",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 9.2: DND (Do Not Disturb) Flag",
+    "description": "What: If contact has DND enabled in GHL, does everything stop?\n\n**If fail:** Check if GHL workflows check DND before sending",
+    "category": "business",
+    "priority": "medium",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "No SMS sent",
+      "No calls made",
+      "Workflows either skip communication actions or remove contact",
+      "No errors thrown"
+    ],
+    "id": "4c887089-82b5-4631-b585-809bc6fcb7db",
+    "created_at": "2026-02-25T07:11:17.486135",
+    "updated_at": "2026-02-25T07:11:17.486136",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 9.3: After-Hours Compliance",
+    "description": "What: No calls or texts outside permitted hours\n\n**If fail:** Check calling hours conditions across ALL workflows (GHL + n8n)",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "No VAPI calls made after 8pm",
+      "SMS behavior documented (some businesses allow 9pm texts, some don't)",
+      "All 19 customer-facing actions in No-Show cadence respect 8am-8pm",
+      "No weekend calling (if business policy \u2014 document this)"
+    ],
+    "id": "1e798f9a-7b4d-4a13-b0d9-caddd1a96a86",
+    "created_at": "2026-02-25T07:11:17.486986",
+    "updated_at": "2026-02-25T07:11:17.486987",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 9.4: Consent Tracking",
+    "description": "What: Does the system track HOW the lead opted in?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Lead source captured (form, ad, manual entry)",
+      "Timestamp of consent recorded",
+      "If someone asks \"how did you get my number\" \u2014 there's an answer in the system",
+      "**Document:** If consent tracking doesn't exist, flag as compliance risk"
+    ],
+    "id": "8bc13611-c269-433e-8429-a7cff409f10e",
+    "created_at": "2026-02-25T07:11:17.487832",
+    "updated_at": "2026-02-25T07:11:17.487833",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 10.1: Timezone Handling",
+    "description": "What: What timezone does the system use? Is it consistent?\n\n**If fail:** Check timezone settings in GHL location, n8n workflow timers, VAPI config",
+    "category": "business",
+    "priority": "high",
+    "status": "DO NOW",
+    "acceptance_criteria": [
+      "GHL timezone: _________ (document it)",
+      "n8n timezone: _________ (document it)",
+      "All time-based conditions use SAME timezone",
+      "\"8am\" in calling hours means 8am in the LEAD'S timezone (not server timezone)",
+      "If lead is in Pacific time and system is Eastern, calls don't go out at 5am Pacific",
+      "**CRITICAL \u2014 wrong timezone = calling people at 5am**"
+    ],
+    "id": "c8b29841-0e95-4fb0-857e-dbf710c3c69e",
+    "created_at": "2026-02-25T07:11:17.488814",
+    "updated_at": "2026-02-25T07:11:17.488814",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 10.2: Weekend Behavior",
+    "description": "What: Do automations run on Saturday/Sunday?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Document: Are SMS messages sent on weekends?",
+      "Document: Are VAPI calls made on weekends?",
+      "Document: Are no-show recovery attempts made on weekends?",
+      "Whatever the behavior is, it should be INTENTIONAL not accidental",
+      "**Decision needed:** Does Jack want the system active 7 days or weekdays only?"
+    ],
+    "id": "1100cb2c-3627-448b-9ea9-3a39a117cbbb",
+    "created_at": "2026-02-25T07:11:17.489708",
+    "updated_at": "2026-02-25T07:11:17.489709",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 10.3: Wait Node Accuracy",
+    "description": "What: Do wait nodes fire when they say they will?\n\n**If fail:** Check n8n execution settings \u2192 workflow timeout settings",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Action fires within a reasonable window of the stated wait (\u00b15 minutes)",
+      "Waits don't stack or multiply (e.g., 2 hour wait doesn't become 4 hours)",
+      "If n8n restarts during a wait, the wait resumes correctly (not resets)"
+    ],
+    "id": "01fdc32f-b8e4-497f-840e-1ba32166a7c3",
+    "created_at": "2026-02-25T07:11:17.490606",
+    "updated_at": "2026-02-25T07:11:17.490607",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 10.4: Appointment Time Zone on Rep Notification",
+    "description": "What: When rep gets \"appointment at 2pm\" \u2014 is that the right timezone?\n\n**If fail:** Check n8n Rep Appointment Notification template \u2192 time field formatting",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Time in rep notification matches the actual appointment time",
+      "Timezone is explicit or matches rep's local time",
+      "No confusion between UTC and local"
+    ],
+    "id": "35966e24-909a-4be6-8046-07c96d487d4b",
+    "created_at": "2026-02-25T07:11:17.491547",
+    "updated_at": "2026-02-25T07:11:17.491548",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 11.1: Contact Fields Survive Round-Trip",
+    "description": "What: Data sent GHL\u2192n8n\u2192VAPI\u2192n8n\u2192GHL stays intact\n\n**If fail:** Check field mapping in n8n workflows \u2192 GHL API update calls",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "After VAPI call completes and data returns to GHL:",
+      "Name unchanged",
+      "Phone unchanged",
+      "Email unchanged",
+      "New fields added correctly (call result, call attempt count)",
+      "No fields overwritten with blank/null values"
+    ],
+    "id": "a9bb8f66-8448-4b83-82e3-d817ff5ce5df",
+    "created_at": "2026-02-25T07:11:17.492496",
+    "updated_at": "2026-02-25T07:11:17.492497",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 11.2: Opportunity Value Tracking",
+    "description": "What: Does opportunity monetary value get updated?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Initial creation: value = $0 (as designed)",
+      "After appointment booked: value updated? Or stays $0 until won?",
+      "After won: value reflects actual job value (if entered)",
+      "**Document current behavior"
+    ],
+    "id": "eadce169-a726-440e-a073-8d1963585d0d",
+    "created_at": "2026-02-25T07:11:17.493432",
+    "updated_at": "2026-02-25T07:11:17.493433",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 11.3: Tag Conflicts",
+    "description": "What: Can a contact have contradictory tags?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "System handles gracefully (one tag takes priority)",
+      "OR: system prevents conflicting tags",
+      "Contact doesn't get stuck in two workflows simultaneously",
+      "**Document behavior \u2014 may need tag cleanup logic"
+    ],
+    "id": "a16f939b-c4f9-4f88-83eb-7c38d0e51176",
+    "created_at": "2026-02-25T07:11:17.494367",
+    "updated_at": "2026-02-25T07:11:17.494368",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 12.1: n8n Goes Down \u2014 What Happens to GHL?",
+    "description": "What: If n8n is unreachable, do GHL workflows break?\n\n**If fail:** Check GHL webhook retry behavior + n8n execution queue",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "GHL webhook fires but gets error response from n8n",
+      "GHL workflow either: retries, logs error, or continues past webhook",
+      "Contact doesn't get stuck",
+      "When n8n comes back: no data lost (or document what IS lost)"
+    ],
+    "id": "6b2f8923-300f-42a4-ac13-43bd03241310",
+    "created_at": "2026-02-25T07:11:17.495332",
+    "updated_at": "2026-02-25T07:11:17.495333",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 12.2: n8n Error Notifications",
+    "description": "What: When a workflow fails, who gets notified?",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Error workflow configured (receives all failures)",
+      "Notification sent (email, webhook, or Slack) on failure",
+      "If NOT configured: set it up \u2014 silent failures = invisible bugs",
+      "**Document current error handling"
+    ],
+    "id": "45316996-648b-4b90-8033-28f0b274cf33",
+    "created_at": "2026-02-25T07:11:17.496297",
+    "updated_at": "2026-02-25T07:11:17.496298",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 12.3: GHL Workflow Execution History",
+    "description": "What: Can we see what happened to every contact?\n\n**If fail:** Check GHL workflow logging settings",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Each workflow shows execution history",
+      "Can see: when it ran, what branch it took, what actions fired",
+      "Can identify exactly where a failure occurred"
+    ],
+    "id": "7c91f3fc-20ec-454e-b818-b9116543a22d",
+    "created_at": "2026-02-25T07:11:17.497369",
+    "updated_at": "2026-02-25T07:11:17.497370",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 12.4: Twilio/SMS Delivery Failures",
+    "description": "What: What if SMS can't be delivered?\n\n**If fail:** Check Twilio delivery webhook \u2192 GHL error handling",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "SMS fails to deliver",
+      "Error logged somewhere (GHL or Twilio)",
+      "Workflow continues (doesn't freeze on failed SMS)",
+      "Contact isn't stuck waiting for SMS delivery confirmation"
+    ],
+    "id": "dd122f45-763a-4a8f-bead-9027475bc1f2",
+    "created_at": "2026-02-25T07:11:17.498439",
+    "updated_at": "2026-02-25T07:11:17.498440",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 12.5: VAPI Service Outage",
+    "description": "What: If VAPI is down, does the system handle it?\n\n**If fail:** Check n8n VAPI workflow error handling nodes",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "n8n logs the error",
+      "Contact falls back to SMS-only path",
+      "System doesn't silently drop the lead",
+      "When VAPI recovers, pending calls can be retried"
+    ],
+    "id": "18981957-f13b-4dd9-9ea4-664de6c3036c",
+    "created_at": "2026-02-25T07:11:17.499377",
+    "updated_at": "2026-02-25T07:11:17.499379",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 13.1: Multiple Leads at Once",
+    "description": "What: 5 leads enter simultaneously \u2014 does the system handle it?\n\n**If fail:** Check n8n concurrency settings \u2192 GHL workflow queue behavior",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "All 5 get processed",
+      "No webhook queue backup",
+      "No duplicate messages",
+      "n8n handles concurrent executions",
+      "VAPI doesn't try to call all 5 at the exact same second"
+    ],
+    "id": "6ab64d32-94b9-4ad3-9178-9a96bfa856ae",
+    "created_at": "2026-02-25T07:11:17.500409",
+    "updated_at": "2026-02-25T07:11:17.500409",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  },
+  {
+    "title": "Test 13.2: n8n Execution Limits",
+    "description": "What: Does the n8n plan have execution limits that could block the system?\n\n**If fail:** Upgrade plan or optimize workflow execution count",
+    "category": "business",
+    "priority": "low",
+    "status": "QUEUED",
+    "acceptance_criteria": [
+      "Document: Current plan allows _____ executions per month",
+      "Document: Current usage is _____ executions",
+      "Calculate: At 50 leads/month, approximately _____ executions needed",
+      "Is there headroom? Or will we hit limits?"
+    ],
+    "id": "3c4bfd5c-a0e7-4ed7-9d00-feff127b7003",
+    "created_at": "2026-02-25T07:11:17.501431",
+    "updated_at": "2026-02-25T07:11:17.501433",
+    "artifacts": [],
+    "depends_on": [],
+    "project": "RSS Testing"
+  }
+]
