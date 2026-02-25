@@ -1,4 +1,4 @@
-export type TaskStatus = 'DO NOW' | 'QUEUED' | 'IN PROGRESS' | 'DONE' | 'BLOCKED';
+export type TaskStatus = 'DO NOW' | 'QUEUED' | 'IN PROGRESS' | 'WAITING' | 'BLOCKED' | 'REVIEW' | 'DONE';
 export type TaskPriority = 'high' | 'medium' | 'low';
 export type TaskCategory = 'business' | 'work' | 'personal' | 'other';
 
@@ -10,10 +10,26 @@ export interface Artifact {
   created_at: string;
 }
 
+export interface CompletionLog {
+  what_was_done: string;
+  artifacts: string[];
+  time_spent: string;
+  lessons_learned: string;
+}
+
+export interface RecurringConfig {
+  schedule: 'daily' | 'weekly' | 'monthly';
+  day?: string;
+  time?: string;
+  auto_create: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
   description?: string;
+  outcome?: string;
+  action_steps?: string[];
   status: TaskStatus;
   priority: TaskPriority;
   category: TaskCategory;
@@ -24,14 +40,21 @@ export interface Task {
   due_date?: string;
   started_at?: string;
   completed_at?: string;
+  reviewed_at?: string;
   created_at: string;
   updated_at: string;
   artifacts: Artifact[];
   depends_on: string[];
+  dependencies?: string[];
   blocked_by_dependencies?: boolean;
+  blocked_reason?: string;
   parent_id?: string;
   template_id?: string;
   acceptance_criteria?: string[];
+  completion_log?: CompletionLog;
+  approval_notes?: string;
+  recurring?: RecurringConfig;
+  stale_days?: number;
 }
 
 export interface Template {
@@ -48,10 +71,14 @@ export interface Template {
 export interface DigestData {
   completed_count: number;
   completed_tasks: Task[];
-  awaiting_review_count: number;
-  awaiting_review: Task[];
+  in_review_count: number;
+  in_review: Task[];
   blocked_count: number;
   blocked_tasks: Task[];
+  waiting_count: number;
+  waiting_tasks: Task[];
+  stale_count: number;
+  stale_tasks: Task[];
   priority_queue: Task[];
   overdue_count: number;
   overdue_tasks: Task[];
@@ -67,5 +94,6 @@ export interface Metrics {
   by_category: Record<string, number>;
   by_status: Record<string, number>;
   queue_depth: number;
+  in_review: number;
   total_tasks: number;
 }

@@ -6,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { Clock, AlertCircle, CheckCircle2, Pause, Lock, Briefcase, Folder, User, Layers } from 'lucide-react';
+import { Clock, AlertCircle, Hourglass, Pause, Lock, Briefcase, Folder, User, Layers, AlertTriangle } from 'lucide-react';
 
 const COLUMNS: { status: TaskStatus; icon: React.ReactNode; color: string }[] = [
   { status: 'DO NOW', icon: <AlertCircle className="h-4 w-4" />, color: 'text-red-400' },
   { status: 'QUEUED', icon: <Clock className="h-4 w-4" />, color: 'text-yellow-400' },
   { status: 'IN PROGRESS', icon: <Pause className="h-4 w-4" />, color: 'text-blue-400' },
-  { status: 'DONE', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-emerald-400' },
+  { status: 'WAITING', icon: <Hourglass className="h-4 w-4" />, color: 'text-orange-400' },
   { status: 'BLOCKED', icon: <Lock className="h-4 w-4" />, color: 'text-purple-400' },
 ];
 
