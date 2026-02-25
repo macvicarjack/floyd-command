@@ -3,7 +3,7 @@ import { Task, Template, DigestData, Metrics } from './types';
 
 const API_BASE = window.location.hostname === 'localhost' 
   ? 'http://localhost:5002/api'
-  : `http://${window.location.hostname}:5002/api`;
+  : 'https://floyds-mac-mini.tail4b156f.ts.net/floyd-api/api';
 
 const api = axios.create({ baseURL: API_BASE });
 
