@@ -9,6 +9,10 @@ app = Flask(__name__)
 CORS(app)
 
 DATA_FILE = '/Users/floydbot/projects/floyd-command/backend/tasks.json'
+ARCHIVE_FILE = '/Users/floydbot/projects/floyd-command/backend/archive.json'
+
+# Valid statuses
+VALID_STATUSES = ['DO NOW', 'QUEUED', 'IN PROGRESS', 'WAITING', 'BLOCKED', 'REVIEW', 'DONE']
 
 TEMPLATES = {
     'research-prospect': {
@@ -68,12 +72,21 @@ def save_tasks(tasks):
     with open(DATA_FILE, 'w') as f:
         json.dump(tasks, f, indent=2)
 
+def load_archive():
+    if not os.path.exists(ARCHIVE_FILE):
+        return []
+    with open(ARCHIVE_FILE, 'r') as f:
+        return json.load(f)
+
+def save_archive(archive):
+    with open(ARCHIVE_FILE, 'w') as f:
+        json.dump(archive, f, indent=2)
+
 def smart_sort(tasks):
     """Sort by: overdue > high priority > oldest > medium > low"""
     now = datetime.now()
     
     def sort_key(t):
-        # Overdue check
         due = t.get('due_date')
         is_overdue = False
         if due:
@@ -82,11 +95,9 @@ def smart_sort(tasks):
             except:
                 pass
         
-        # Priority mapping
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
         priority = priority_order.get(t.get('priority', 'medium'), 1)
         
-        # Created date
         try:
             created = datetime.fromisoformat(t.get('created_at', '').replace('Z', ''))
         except:
@@ -98,7 +109,7 @@ def smart_sort(tasks):
 
 def check_dependencies(task, all_tasks):
     """Check if task is blocked by incomplete dependencies"""
-    depends_on = task.get('depends_on', [])
+    depends_on = task.get('depends_on', []) or task.get('dependencies', [])
     if not depends_on:
         return False
     for dep_id in depends_on:
@@ -107,14 +118,92 @@ def check_dependencies(task, all_tasks):
             return True
     return False
 
+def calculate_stale_days(task):
+    """Calculate days task has been in QUEUED status"""
+    if task.get('status') != 'QUEUED':
+        return 0
+    created = task.get('created_at')
+    if not created:
+        return 0
+    try:
+        created_dt = datetime.fromisoformat(created.replace('Z', ''))
+        return (datetime.now() - created_dt).days
+    except:
+        return 0
+
+def auto_archive_old_tasks():
+    """Move tasks that have been DONE for >7 days to archive"""
+    tasks = load_tasks()
+    archive = load_archive()
+    now = datetime.now()
+    seven_days_ago = now - timedelta(days=7)
+    
+    to_archive = []
+    remaining = []
+    
+    for t in tasks:
+        if t.get('status') == 'DONE' and t.get('reviewed_at'):
+            try:
+                reviewed = datetime.fromisoformat(t['reviewed_at'].replace('Z', ''))
+                if reviewed < seven_days_ago:
+                    t['archived_at'] = now.isoformat()
+                    to_archive.append(t)
+                    continue
+            except:
+                pass
+        remaining.append(t)
+    
+    if to_archive:
+        archive.extend(to_archive)
+        save_archive(archive)
+        save_tasks(remaining)
+    
+    return len(to_archive)
+
+def cleanup_old_archives():
+    """Remove archives older than 30 days"""
+    archive = load_archive()
+    now = datetime.now()
+    thirty_days_ago = now - timedelta(days=30)
+    
+    remaining = []
+    for t in archive:
+        archived_at = t.get('archived_at')
+        if archived_at:
+            try:
+                archived = datetime.fromisoformat(archived_at.replace('Z', ''))
+                if archived >= thirty_days_ago:
+                    remaining.append(t)
+                    continue
+            except:
+                pass
+        remaining.append(t)  # Keep if can't parse date
+    
+    if len(remaining) != len(archive):
+        save_archive(remaining)
+    
+    return len(archive) - len(remaining)
+
 # ============ BASIC CRUD ============
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
+    # Auto-archive old tasks on each request
+    auto_archive_old_tasks()
+    
     tasks = load_tasks()
-    # Add computed fields
+    status_filter = request.args.get('status')
+    category_filter = request.args.get('category')
+    
+    if status_filter:
+        tasks = [t for t in tasks if t.get('status') == status_filter]
+    if category_filter:
+        tasks = [t for t in tasks if t.get('category') == category_filter]
+    
     for t in tasks:
         t['blocked_by_dependencies'] = check_dependencies(t, tasks)
+        t['stale_days'] = calculate_stale_days(t)
+    
     return jsonify(smart_sort(tasks))
 
 @app.route('/api/tasks', methods=['POST'])
@@ -128,6 +217,11 @@ def create_task():
     task.setdefault('category', 'other')
     task.setdefault('artifacts', [])
     task.setdefault('depends_on', [])
+    task.setdefault('dependencies', [])
+    task.setdefault('outcome', '')
+    task.setdefault('action_steps', [])
+    task.setdefault('completion_log', None)
+    task.setdefault('recurring', None)
     
     tasks = load_tasks()
     tasks.append(task)
@@ -140,6 +234,7 @@ def get_task(task_id):
     task = next((t for t in tasks if t['id'] == task_id), None)
     if task:
         task['blocked_by_dependencies'] = check_dependencies(task, tasks)
+        task['stale_days'] = calculate_stale_days(task)
         return jsonify(task)
     return jsonify({'error': 'Task not found'}), 404
 
@@ -162,19 +257,82 @@ def delete_task(task_id):
     save_tasks(tasks)
     return jsonify({'success': True})
 
-# ============ FEATURE ENDPOINTS ============
+# ============ WORKFLOW ENDPOINTS ============
 
-@app.route('/api/next', methods=['GET'])
-def get_next_task():
-    """Get highest priority unassigned DO NOW task"""
+@app.route('/api/tasks/<task_id>/start', methods=['POST'])
+def start_task(task_id):
+    """Move task to IN PROGRESS and record start time"""
     tasks = load_tasks()
-    do_now = [t for t in tasks if t.get('status') == 'DO NOW' 
-              and not t.get('assignee')
-              and not check_dependencies(t, tasks)]
-    sorted_tasks = smart_sort(do_now)
-    if sorted_tasks:
-        return jsonify(sorted_tasks[0])
-    return jsonify(None)
+    for t in tasks:
+        if t['id'] == task_id:
+            t['status'] = 'IN PROGRESS'
+            t['started_at'] = datetime.now().isoformat()
+            t['updated_at'] = datetime.now().isoformat()
+            save_tasks(tasks)
+            return jsonify(t)
+    return jsonify({'error': 'Task not found'}), 404
+
+@app.route('/api/tasks/<task_id>/complete', methods=['POST'])
+def complete_task(task_id):
+    """Move task to REVIEW with completion log"""
+    data = request.json or {}
+    
+    tasks = load_tasks()
+    for t in tasks:
+        if t['id'] == task_id:
+            t['status'] = 'REVIEW'
+            t['completed_at'] = datetime.now().isoformat()
+            t['updated_at'] = datetime.now().isoformat()
+            
+            # Calculate time spent
+            time_spent = data.get('time_spent')
+            if not time_spent and t.get('started_at'):
+                try:
+                    started = datetime.fromisoformat(t['started_at'].replace('Z', ''))
+                    completed = datetime.fromisoformat(t['completed_at'].replace('Z', ''))
+                    delta = completed - started
+                    hours = int(delta.total_seconds() // 3600)
+                    minutes = int((delta.total_seconds() % 3600) // 60)
+                    if hours > 0:
+                        time_spent = f"{hours}h {minutes}m"
+                    else:
+                        time_spent = f"{minutes}m"
+                except:
+                    time_spent = 'unknown'
+            
+            # Build completion log
+            t['completion_log'] = {
+                'what_was_done': data.get('what_was_done', ''),
+                'artifacts': data.get('artifacts', []),
+                'time_spent': time_spent or 'unknown',
+                'lessons_learned': data.get('lessons_learned', '')
+            }
+            
+            save_tasks(tasks)
+            return jsonify(t)
+    return jsonify({'error': 'Task not found'}), 404
+
+@app.route('/api/tasks/<task_id>/approve', methods=['POST'])
+def approve_task(task_id):
+    """Move task from REVIEW to DONE"""
+    data = request.json or {}
+    
+    tasks = load_tasks()
+    for t in tasks:
+        if t['id'] == task_id:
+            if t.get('status') != 'REVIEW':
+                return jsonify({'error': 'Task must be in REVIEW status to approve'}), 400
+            
+            t['status'] = 'DONE'
+            t['reviewed_at'] = datetime.now().isoformat()
+            t['updated_at'] = datetime.now().isoformat()
+            
+            if data.get('notes'):
+                t['approval_notes'] = data['notes']
+            
+            save_tasks(tasks)
+            return jsonify(t)
+    return jsonify({'error': 'Task not found'}), 404
 
 @app.route('/api/tasks/<task_id>/claim', methods=['POST'])
 def claim_task(task_id):
@@ -190,36 +348,78 @@ def claim_task(task_id):
             return jsonify(t)
     return jsonify({'error': 'Task not found'}), 404
 
-@app.route('/api/tasks/<task_id>/complete', methods=['POST'])
-def complete_task(task_id):
-    """Complete a task with optional artifacts"""
-    data = request.json or {}
-    artifacts = data.get('artifacts', [])
-    
+# ============ QUERY ENDPOINTS ============
+
+@app.route('/api/tasks/history', methods=['GET'])
+def get_history():
+    """Get tasks completed in last 7 days"""
     tasks = load_tasks()
+    now = datetime.now()
+    seven_days_ago = now - timedelta(days=7)
+    
+    history = []
     for t in tasks:
-        if t['id'] == task_id:
-            t['status'] = 'DONE'
-            t['completed_at'] = datetime.now().isoformat()
-            t['updated_at'] = datetime.now().isoformat()
-            
-            # Calculate actual time
-            if t.get('started_at'):
-                try:
-                    started = datetime.fromisoformat(t['started_at'])
-                    completed = datetime.fromisoformat(t['completed_at'])
-                    t['time_actual_minutes'] = int((completed - started).total_seconds() / 60)
-                except:
-                    pass
-            
-            # Add artifacts
-            if artifacts:
-                t.setdefault('artifacts', [])
-                t['artifacts'].extend(artifacts)
-            
-            save_tasks(tasks)
-            return jsonify(t)
-    return jsonify({'error': 'Task not found'}), 404
+        if t.get('status') == 'DONE' and t.get('completed_at'):
+            try:
+                completed = datetime.fromisoformat(t['completed_at'].replace('Z', ''))
+                if completed >= seven_days_ago:
+                    history.append(t)
+            except:
+                pass
+    
+    # Sort by completed_at descending
+    history.sort(key=lambda x: x.get('completed_at', ''), reverse=True)
+    return jsonify(history)
+
+@app.route('/api/tasks/stale', methods=['GET'])
+def get_stale():
+    """Get tasks queued for >3 days"""
+    tasks = load_tasks()
+    now = datetime.now()
+    three_days_ago = now - timedelta(days=3)
+    
+    stale = []
+    for t in tasks:
+        if t.get('status') == 'QUEUED' and t.get('created_at'):
+            try:
+                created = datetime.fromisoformat(t['created_at'].replace('Z', ''))
+                if created < three_days_ago:
+                    days = (now - created).days
+                    t['stale_days'] = days
+                    stale.append(t)
+            except:
+                pass
+    
+    # Sort by staleness (oldest first)
+    stale.sort(key=lambda x: x.get('created_at', ''))
+    return jsonify(stale)
+
+@app.route('/api/tasks/review', methods=['GET'])
+def get_in_review():
+    """Get tasks awaiting review"""
+    tasks = load_tasks()
+    review = [t for t in tasks if t.get('status') == 'REVIEW']
+    return jsonify(review)
+
+@app.route('/api/archive', methods=['GET'])
+def get_archive():
+    """Get archived tasks"""
+    archive = load_archive()
+    return jsonify(archive)
+
+# ============ FEATURE ENDPOINTS ============
+
+@app.route('/api/next', methods=['GET'])
+def get_next_task():
+    """Get highest priority unassigned DO NOW task"""
+    tasks = load_tasks()
+    do_now = [t for t in tasks if t.get('status') == 'DO NOW' 
+              and not t.get('assignee')
+              and not check_dependencies(t, tasks)]
+    sorted_tasks = smart_sort(do_now)
+    if sorted_tasks:
+        return jsonify(sorted_tasks[0])
+    return jsonify(None)
 
 @app.route('/api/tasks/quick', methods=['POST'])
 def quick_capture():
@@ -227,7 +427,6 @@ def quick_capture():
     data = request.json
     title = data.get('title', 'Untitled task')
     
-    # Auto-detect priority from keywords
     priority = 'medium'
     lower_title = title.lower()
     if any(w in lower_title for w in ['urgent', 'asap', 'critical', 'emergency']):
@@ -235,7 +434,6 @@ def quick_capture():
     elif any(w in lower_title for w in ['someday', 'maybe', 'low priority']):
         priority = 'low'
     
-    # Auto-detect category from keywords
     category = 'other'
     if any(w in lower_title for w in ['prospect', 'lead', 'sales', 'client', 'revenue', 'pricing']):
         category = 'business'
@@ -248,12 +446,17 @@ def quick_capture():
         'id': str(uuid.uuid4()),
         'title': title,
         'description': '',
+        'outcome': '',
+        'action_steps': [],
         'status': 'QUEUED',
         'priority': priority,
         'category': category,
         'assignee': 'Floyd',
         'artifacts': [],
         'depends_on': [],
+        'dependencies': [],
+        'completion_log': None,
+        'recurring': None,
         'created_at': datetime.now().isoformat(),
         'updated_at': datetime.now().isoformat()
     }
@@ -270,23 +473,29 @@ def get_digest():
     now = datetime.now()
     yesterday = now - timedelta(days=1)
     
-    # Completed in last 24h
     completed_recent = [t for t in tasks if t.get('status') == 'DONE' 
                         and t.get('completed_at')
                         and datetime.fromisoformat(t['completed_at'].replace('Z', '')) > yesterday]
     
-    # Awaiting review (DONE but not yet reviewed)
-    awaiting_review = [t for t in tasks if t.get('status') == 'DONE' 
-                       and not t.get('reviewed')]
-    
-    # Blocked
+    in_review = [t for t in tasks if t.get('status') == 'REVIEW']
     blocked = [t for t in tasks if t.get('status') == 'BLOCKED']
+    waiting = [t for t in tasks if t.get('status') == 'WAITING']
     
-    # Priority queue (DO NOW and QUEUED, sorted)
     queue = [t for t in tasks if t.get('status') in ['DO NOW', 'QUEUED']]
     queue = smart_sort(queue)[:5]
     
-    # Overdue
+    # Stale tasks (>3 days in QUEUED)
+    three_days_ago = now - timedelta(days=3)
+    stale = []
+    for t in tasks:
+        if t.get('status') == 'QUEUED' and t.get('created_at'):
+            try:
+                created = datetime.fromisoformat(t['created_at'].replace('Z', ''))
+                if created < three_days_ago:
+                    stale.append(t)
+            except:
+                pass
+    
     overdue = []
     for t in tasks:
         if t.get('due_date') and t.get('status') not in ['DONE', 'BLOCKED']:
@@ -300,11 +509,15 @@ def get_digest():
     return jsonify({
         'completed_count': len(completed_recent),
         'completed_tasks': completed_recent,
-        'awaiting_review_count': len(awaiting_review),
-        'awaiting_review': awaiting_review,
+        'in_review_count': len(in_review),
+        'in_review': in_review,
         'blocked_count': len(blocked),
         'blocked_tasks': blocked,
+        'waiting_count': len(waiting),
+        'waiting_tasks': waiting,
         'priority_queue': queue,
+        'stale_count': len(stale),
+        'stale_tasks': stale,
         'overdue_count': len(overdue),
         'overdue_tasks': overdue,
         'generated_at': now.isoformat()
@@ -350,6 +563,8 @@ def create_from_template(template_id):
         'id': str(uuid.uuid4()),
         'title': data.get('title', template['name']),
         'description': template['description'],
+        'outcome': '',
+        'action_steps': [],
         'status': 'QUEUED',
         'priority': template['priority'],
         'category': template['category'],
@@ -358,12 +573,14 @@ def create_from_template(template_id):
         'assignee': 'Floyd',
         'artifacts': [],
         'depends_on': [],
+        'dependencies': [],
+        'completion_log': None,
+        'recurring': None,
         'template_id': template_id,
         'created_at': datetime.now().isoformat(),
         'updated_at': datetime.now().isoformat()
     }
     
-    # Merge any additional data
     task.update({k: v for k, v in data.items() if k not in ['id', 'created_at']})
     
     tasks = load_tasks()
@@ -380,7 +597,6 @@ def get_metrics():
     week_start = today_start - timedelta(days=now.weekday())
     month_start = today_start.replace(day=1)
     
-    # Completed counts
     completed = [t for t in tasks if t.get('status') == 'DONE']
     
     def completed_since(since):
@@ -399,24 +615,21 @@ def get_metrics():
     completed_this_week = completed_since(week_start)
     completed_this_month = completed_since(month_start)
     
-    # Average completion time
     times = [t.get('time_actual_minutes') for t in completed if t.get('time_actual_minutes')]
     avg_time = sum(times) / len(times) if times else 0
     
-    # By category
     by_category = {}
     for t in tasks:
         cat = t.get('category', 'other')
         by_category[cat] = by_category.get(cat, 0) + 1
     
-    # By status
     by_status = {}
     for t in tasks:
         status = t.get('status', 'QUEUED')
         by_status[status] = by_status.get(status, 0) + 1
     
-    # Queue depth
     queue_depth = len([t for t in tasks if t.get('status') in ['DO NOW', 'QUEUED']])
+    in_review = len([t for t in tasks if t.get('status') == 'REVIEW'])
     
     return jsonify({
         'completed_today': completed_today,
@@ -427,25 +640,39 @@ def get_metrics():
         'by_category': by_category,
         'by_status': by_status,
         'queue_depth': queue_depth,
+        'in_review': in_review,
         'total_tasks': len(tasks)
     })
 
 @app.route('/api/alerts', methods=['GET'])
 def get_alerts():
-    """Get tasks that need attention (blocked >24h)"""
+    """Get tasks that need attention"""
     tasks = load_tasks()
     now = datetime.now()
-    day_ago = now - timedelta(days=1)
+    three_days_ago = now - timedelta(days=3)
+    five_days_ago = now - timedelta(days=5)
     
     alerts = []
+    
     for t in tasks:
+        # Stale QUEUED tasks (3+ days)
+        if t.get('status') == 'QUEUED' and t.get('created_at'):
+            try:
+                created = datetime.fromisoformat(t['created_at'].replace('Z', ''))
+                if created < five_days_ago:
+                    alerts.append({'type': 'stale_5_days', 'task': t, 'days': (now - created).days})
+                elif created < three_days_ago:
+                    alerts.append({'type': 'stale_3_days', 'task': t, 'days': (now - created).days})
+            except:
+                pass
+        
         # Blocked for >24h
         if t.get('status') == 'BLOCKED':
             updated = t.get('updated_at', t.get('created_at'))
             if updated:
                 try:
                     u = datetime.fromisoformat(updated.replace('Z', ''))
-                    if u < day_ago:
+                    if u < now - timedelta(days=1):
                         alerts.append({'type': 'blocked_stale', 'task': t})
                 except:
                     pass
@@ -460,6 +687,13 @@ def get_alerts():
                 pass
     
     return jsonify(alerts)
+
+@app.route('/api/system/archive-cleanup', methods=['POST'])
+def trigger_cleanup():
+    """Manually trigger archive cleanup"""
+    archived = auto_archive_old_tasks()
+    removed = cleanup_old_archives()
+    return jsonify({'archived': archived, 'removed_from_archive': removed})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)
