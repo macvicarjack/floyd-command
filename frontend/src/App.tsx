@@ -50,7 +50,7 @@ function NavBar() {
 
 export default function App() {
   return (
-    <Router>
+    <Router basename="/floyd-command">
       <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
         <NavBar />
         <main className="md:pt-4">
