@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { CheckCircle2, Circle } from 'lucide-react';
 
 const TaskDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +82,52 @@ const TaskDetailPage: React.FC = () => {
               {task.description || 'No description provided.'}
             </div>
           </div>
+
+          {task.outcome && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h4 className="font-semibold">Expected Outcome</h4>
+                <div className="text-sm leading-relaxed text-muted-foreground bg-green-50 dark:bg-green-950/20 p-4 rounded-md border border-green-200 dark:border-green-900">
+                  {task.outcome}
+                </div>
+              </div>
+            </>
+          )}
+
+          {task.action_steps && task.action_steps.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="font-semibold">Action Steps</h4>
+                <div className="space-y-2">
+                  {task.action_steps.map((step, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <Circle className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                      <span className="text-sm leading-relaxed">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="font-semibold">Acceptance Criteria</h4>
+                <div className="space-y-2">
+                  {task.acceptance_criteria.map((criteria, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
+                      <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm leading-relaxed">{criteria}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
