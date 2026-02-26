@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTasksInReview, approveTask, updateTask } from '@/lib/api';
+import { getTasksInReview, approveTask, rejectTask } from '@/lib/api';
 import { Task } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ export default function ReviewPage() {
 
   const handleReject = async (id: string) => {
     try {
-      await updateTask(id, { status: 'QUEUED' } as any);
+      await rejectTask(id, feedback[id]);
       fetchTasks();
     } catch (error) {
       console.error('Error rejecting task:', error);
@@ -80,6 +80,9 @@ export default function ReviewPage() {
                     <CardTitle className="text-lg">{task.title}</CardTitle>
                   </div>
                   <Badge variant="outline" className="text-yellow-400 border-yellow-400/30">In Review</Badge>
+                  {task.retry_count && task.retry_count > 0 && (
+                    <Badge variant='destructive' className='ml-2'>Retry #{task.retry_count}</Badge>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -87,6 +90,16 @@ export default function ReviewPage() {
                   <p className="text-sm text-muted-foreground">{task.description}</p>
                 )}
                 
+                
+                {/* Rejection Notes from Previous Attempt */}
+                {task.rejection_notes && (
+                  <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-destructive mb-2 flex items-center gap-2">
+                      <XCircle className="h-4 w-4" /> Previous Rejection Notes
+                    </h4>
+                    <p className="text-sm">{task.rejection_notes}</p>
+                  </div>
+                )}
                 {/* Completion Log */}
                 {task.completion_log && (
                   <div className="bg-muted/50 rounded-lg p-4 space-y-3">

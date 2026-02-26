@@ -6,13 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { Clock, AlertCircle, Hourglass, Pause, Lock, Briefcase, Folder, User, Layers, AlertTriangle } from 'lucide-react';
+import { Clock, AlertCircle, Hourglass, Pause, Lock, CheckCircle, Briefcase, Folder, User, Layers, AlertTriangle } from 'lucide-react';
 
 const COLUMNS: { status: TaskStatus; icon: React.ReactNode; color: string }[] = [
   { status: 'DO NOW', icon: <AlertCircle className="h-4 w-4" />, color: 'text-red-400' },
   { status: 'QUEUED', icon: <Clock className="h-4 w-4" />, color: 'text-yellow-400' },
   { status: 'IN PROGRESS', icon: <Pause className="h-4 w-4" />, color: 'text-blue-400' },
   { status: 'WAITING', icon: <Hourglass className="h-4 w-4" />, color: 'text-orange-400' },
+  { status: 'DONE', icon: <CheckCircle className="h-4 w-4" />, color: 'text-green-400' },
   { status: 'BLOCKED', icon: <Lock className="h-4 w-4" />, color: 'text-purple-400' },
 ];
 
@@ -114,7 +115,7 @@ export default function BoardPage() {
   };
 
   const renderBoard = (tasksToRender: Task[], droppablePrefix: string = '') => (
-    <div className="flex gap-4 min-w-max md:grid md:grid-cols-5 md:min-w-0">
+    <div className="flex gap-4 min-w-max md:grid md:grid-cols-6 md:min-w-0">
       {COLUMNS.map(({ status, icon, color }) => {
         const columnTasks = tasksToRender.filter(t => t.status === status);
         const droppableId = droppablePrefix ? `${droppablePrefix}:${status}` : status;

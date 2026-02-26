@@ -334,6 +334,29 @@ def approve_task(task_id):
             return jsonify(t)
     return jsonify({'error': 'Task not found'}), 404
 
+
+@app.route('/api/tasks/<task_id>/reject', methods=['POST'])
+def reject_task(task_id):
+    data = request.json or {}
+    tasks = load_tasks()
+    for t in tasks:
+        if t['id'] == task_id:
+            if t.get('status') != 'REVIEW':
+                return jsonify({'error': 'Task must be in REVIEW status to reject'}), 400
+            if 'retry_count' not in t: t['retry_count'] = 0
+            if 'retry_history' not in t: t['retry_history'] = []
+            t['retry_count'] += 1
+            rejection_notes = data.get('notes', '')
+            t['rejection_notes'] = rejection_notes
+            t['retry_history'].append({'attempt': t['retry_count'], 'completed_at': t.get('completed_at'), 'rejected_at': __import__('datetime').datetime.now().isoformat(), 'rejection_notes': rejection_notes})
+            t['status'] = 'QUEUED'
+            t['reviewed_at'] = __import__('datetime').datetime.now().isoformat()
+            t['updated_at'] = __import__('datetime').datetime.now().isoformat()
+            t['completed_at'] = None
+            t['assignee'] = None
+            save_tasks(tasks)
+            return jsonify(t)
+    return jsonify({'error': 'Task not found'}), 404
 @app.route('/api/tasks/<task_id>/claim', methods=['POST'])
 def claim_task(task_id):
     """Claim a task - set assignee and move to IN PROGRESS"""
@@ -696,4 +719,4 @@ def trigger_cleanup():
     return jsonify({'archived': archived, 'removed_from_archive': removed})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=False)

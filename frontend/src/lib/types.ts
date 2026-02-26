@@ -55,6 +55,9 @@ export interface Task {
   approval_notes?: string;
   recurring?: RecurringConfig;
   stale_days?: number;
+  retry_count?: number;
+  rejection_notes?: string;
+  retry_history?: Array<{attempt: number; completed_at?: string; rejected_at: string; rejection_notes: string}>;
 }
 
 export interface Template {

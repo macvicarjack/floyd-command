@@ -20,6 +20,8 @@ export const completeTask = (id: string, log?: { what_was_done?: string; artifac
   api.post<Task>(`/tasks/${id}/complete`, log || {});
 export const approveTask = (id: string, notes?: string) => 
   api.post<Task>(`/tasks/${id}/approve`, { notes });
+export const rejectTask = (id: string, notes?: string) => 
+  api.post<Task>(`/tasks/${id}/reject`, { notes });
 export const claimTask = (id: string) => api.post<Task>(`/tasks/${id}/claim`);
 
 // Query endpoints
